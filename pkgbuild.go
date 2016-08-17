@@ -2,11 +2,27 @@ package pkgbuild
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
-	"github.com/kovetskiy/executil"
+	"github.com/reconquest/faces"
+	"github.com/reconquest/faces/commands/bash"
 )
+
+var (
+	shell *bash.Bash
+)
+
+func getShell() (*bash.Bash, error) {
+	if shell == nil {
+		var err error
+		shell, err = faces.NewBash()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return shell, nil
+}
 
 type PKGBUILD struct {
 	Path string
@@ -19,14 +35,15 @@ func Open(path string) (*PKGBUILD, error) {
 }
 
 func (pkgbuild *PKGBUILD) GetDepends() ([]string, error) {
-	cmd := exec.Command(
-		"bash", "-c", fmt.Sprintf(
-			`source %q && echo "${depends[@]}"`,
-			pkgbuild.Path,
-		),
-	)
+	shell, err := getShell()
+	if err != nil {
+		return nil, err
+	}
 
-	stdout, _, err := executil.Run(cmd)
+	stdout, _, err := shell.Eval(fmt.Sprintf(
+		`source %q && echo "${depends[@]}"`,
+		pkgbuild.Path,
+	))
 	if err != nil {
 		return nil, err
 	}

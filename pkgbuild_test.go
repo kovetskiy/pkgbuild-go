@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/kovetskiy/lorg"
+	"github.com/reconquest/faces"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +37,11 @@ func TestGetDepends_ReturnsDependenciesList(t *testing.T) {
 	file.WriteString(`
 depends=(go git)
 `)
+	logger := lorg.NewLog()
+	logger.SetLevel(lorg.LevelDebug)
+
+	faces.SetLogger(logger)
+
 	depends, err := pkgbuild.GetDepends()
 	test.NoError(err)
 	test.EqualValues([]string{"go", "git"}, depends)
